@@ -3,19 +3,19 @@ const testimonials = [
   {
     name: "John Doe",
     role: "CEO, TechCorp",
-    image: "/placeholder.svg",
+    image: "https://randomuser.me/api/portraits/thumb/men/75.jpg",
     quote: "VideoChat App has revolutionized our remote team communication. It's a game-changer!",
   },
   {
     name: "Jane Smith",
     role: "Freelance Designer",
-    image: "/placeholder.svg",
+    image: "https://randomuser.me/api/portraits/thumb/women/75.jpg",
     quote: "The integrated chat feature is perfect for sharing ideas during client calls. Love it!",
   },
   {
     name: "Mike Johnson",
     role: "Team Lead, StartupX",
-    image: "/placeholder.svg",
+    image: "https://randomuser.me/api/portraits/thumb/men/76.jpg",
     quote: "Secure, reliable, and easy to use. VideoChat App is now an essential part of our workflow.",
   },
 ]
