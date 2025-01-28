@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { updateUser } from "../../redux/userSlice";
-import { toast } from "react-hot-toast";
 import { updateRoom } from "../../redux/roomSlice";
 
 export default function LoginPage() {

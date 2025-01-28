@@ -1,17 +1,17 @@
-"use client";
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Mic,
   MicOff,
   Video,
   VideoOff,
-  PhoneOff,
   Send,
   Users,
   MoreVertical,
   MessageSquare,
+  Phone,
 } from "lucide-react";
+import useSocket from "../../hooks/useSocket";
+import toast from "react-hot-toast";
 
 export default function Room() {
   const [isMicOn, setIsMicOn] = useState(true);
@@ -23,13 +23,23 @@ export default function Room() {
   const toggleVideo = () => setIsVideoOn(!isVideoOn);
   const toggleChat = () => setIsChatOpen(!isChatOpen);
   const endCall = () => console.log("Call ended");
-
+  
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Message sent:", message);
     setMessage("");
   };
-
+  const socket = useSocket();
+  useEffect(() => {
+    if (!socket) {
+      toast.error("Failed to connect to server");
+      return
+    };
+    
+    return () => {
+      socket.disconnect();
+    };
+  },[socket]);
   return (
     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 text-white p-4">
       <div className="relative w-full h-full bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
@@ -137,9 +147,11 @@ export default function Room() {
           </button>
           <button
             onClick={endCall}
-            className="p-3 rounded-full bg-red-600 hover:bg-red-500 transition-colors cursor-pointer"
+            className={`p-3 rounded-full transition-colors cursor-pointer ${isVideoOn
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-red-600 hover:bg-red-500"}`}
           >
-            <PhoneOff size={24} />
+            <Phone size={24} />
           </button>
           <button
             onClick={toggleChat}
