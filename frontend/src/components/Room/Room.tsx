@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Mic,
   MicOff,
@@ -12,38 +12,88 @@ import {
 } from "lucide-react";
 import useSocket from "../../hooks/useSocket";
 import toast from "react-hot-toast";
+import useRtc from "../../hooks/useRtc";
 
 export default function Room() {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const { localStream, remoteStream } = useRtc();
+  const socket = useSocket();
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [localStream, remoteStream]);
+  const toggleMic = () => {
+    if (localStream) {
+      localStream.getAudioTracks().forEach((track) => {
+        track.enabled = !track.enabled;
+      });
+      setIsMicOn((prev) => !prev);
+    }
+  };
 
-  const toggleMic = () => setIsMicOn(!isMicOn);
-  const toggleVideo = () => setIsVideoOn(!isVideoOn);
-  const toggleChat = () => setIsChatOpen(!isChatOpen);
-  const endCall = () => console.log("Call ended");
-  
+  const toggleVideo = () => {
+    if (localStream) {
+      localStream.getVideoTracks().forEach((track) => {
+        track.enabled = !track.enabled;
+      });
+      setIsVideoOn((prev) => !prev);
+    }
+  };
+
+  const toggleChat = () => setIsChatOpen((prev) => !prev);
+
+  const endCall = () => {
+    console.log("Call ended");
+    toast.success("Call ended");
+    socket?.disconnect();
+  };
+
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!message.trim()) return;
     console.log("Message sent:", message);
     setMessage("");
   };
-  const socket = useSocket();
+
   useEffect(() => {
     if (!socket) {
       toast.error("Failed to connect to server");
-      return
-    };
-    
+      return;
+    }
+
     return () => {
       socket.disconnect();
     };
-  },[socket]);
+  }, [socket]);
+
   return (
     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 text-white p-4">
       <div className="relative w-full h-full bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
-        {/* Main video area */}
+        {/* Local Stream */}
+        <div className="absolute z-50 w-64 h-64 bg-gray-900 bg-opacity-75 top-2 left-2 rounded-2xl flex items-center justify-center">
+          {localStream ? (
+            <video
+              ref={localVideoRef}
+              autoPlay
+              className="w-full h-full object-cover rounded-2xl"
+            />
+          ) : (
+            <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center">
+              <Users size={48} />
+            </div>
+          )}
+        </div>
+
+        {/* Main Video Area */}
         <div className="absolute inset-0 bg-gradient-to-tr from-gray-900 to-gray-800">
           {isVideoOn ? (
             <img
@@ -58,7 +108,7 @@ export default function Room() {
           )}
         </div>
 
-        {/* Participant thumbnails */}
+        {/* Participant Thumbnails */}
         <div className="absolute top-4 right-4 flex space-x-2">
           {[1, 2, 3].map((i) => (
             <div
@@ -74,13 +124,13 @@ export default function Room() {
           ))}
         </div>
 
-        {/* Participant count */}
+        {/* Participant Count */}
         <div className="absolute top-4 left-4 bg-gray-900 bg-opacity-75 px-3 py-1 rounded-full flex items-center space-x-2">
           <Users size={16} />
           <span className="text-sm font-medium">4</span>
         </div>
 
-        {/* Chat overlay */}
+        {/* Chat Overlay */}
         {isChatOpen && (
           <div className="absolute max-h-96 bottom-4 right-4 w-80 bg-gray-800 bg-opacity-90 rounded-lg overflow-hidden flex flex-col shadow-xl border border-gray-700">
             <div className="p-3 bg-gray-900 flex justify-between items-center">
@@ -124,6 +174,7 @@ export default function Room() {
           </div>
         )}
 
+        {/* Control Buttons */}
         <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-4">
           <button
             onClick={toggleMic}
@@ -147,9 +198,7 @@ export default function Room() {
           </button>
           <button
             onClick={endCall}
-            className={`p-3 rounded-full transition-colors cursor-pointer ${isVideoOn
-                ? "bg-gray-700 hover:bg-gray-600"
-                : "bg-red-600 hover:bg-red-500"}`}
+            className="p-3 rounded-full bg-red-600 hover:bg-red-500 transition-colors cursor-pointer"
           >
             <Phone size={24} />
           </button>

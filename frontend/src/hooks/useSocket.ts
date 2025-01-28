@@ -12,11 +12,11 @@ const useSocket = () => {
       socket.current = io(serverUrl);
     }
     socket.current.on("connect", () => {
-        socket.current?.emit("love", {
-          message: "Hello from client",
-          user: user,
-        });
+      socket.current?.emit("love", {
+        message: "Hello from client",
+        user: user,
       });
+    });
     return () => {
       socket.current?.disconnect();
       socket.current = null;
