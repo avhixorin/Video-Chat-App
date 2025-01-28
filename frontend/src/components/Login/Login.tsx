@@ -1,13 +1,16 @@
 import { useState } from "react"
+import { useDispatch } from "react-redux"
 import { useNavigate } from "react-router-dom"
+import { updateUser } from "../../redux/userSlice"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
   const [roomId, setRoomId] = useState("")
   const navigate = useNavigate()
-
+  const dispatch = useDispatch()
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    dispatch(updateUser({ username, roomId }))
     navigate(`/room/${roomId}`)
   }
 
@@ -54,7 +57,9 @@ export default function LoginPage() {
             />
           </div>
 
-          <button type="submit" className="submit-button cursor-pointer">
+          <button type="submit" className="submit-button cursor-pointer"
+          onClick={handleSubmit}
+          >
             Join Room →
           </button>
         </form>
