@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { updateUser } from "../../redux/userSlice";
 import { toast } from "react-hot-toast";
+import { updateRoom } from "../../redux/roomSlice";
 
 export default function LoginPage() {
   const profileOptions = [
@@ -21,11 +22,8 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userProfile.length || !username.length || !roomId.length) {
-      toast("Please fill all the fields", { icon: "🚨" });
-      return;
-    }
-    dispatch(updateUser({ username, roomId, userProfile }));
+    dispatch(updateUser({ username, userProfile }));
+    dispatch(updateRoom({ roomId, participants: [] }));
     navigate(`/room/${roomId}`);
   };
 

@@ -1,13 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface User {
-    roomId: string;
+export interface User {
     username: string;
     userProfile: string;
 }
 
 const initialState: User = {
-    roomId: "",
     username: "",
     userProfile: "",
 };
@@ -17,7 +15,6 @@ const userSlice = createSlice({
     initialState,
     reducers: {
         updateUser(state: User, action: PayloadAction<User>) {
-            state.roomId = action.payload.roomId;
             state.username = action.payload.username;
             state.userProfile = action.payload.userProfile;
         },
