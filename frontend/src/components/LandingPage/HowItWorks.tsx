@@ -20,7 +20,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-20 bg-secondary">
+    <section className="py-20 bg-gray-600 text-white">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">How It Works</h2>
         <div className="flex flex-col md:flex-row justify-center items-center md:space-x-8">
