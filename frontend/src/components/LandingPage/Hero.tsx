@@ -10,7 +10,7 @@ export default function Hero() {
             Experience seamless video calls with integrated chat for personal and professional use.
           </p>
           <div className="flex justify-center space-x-4 animate-fade-in-up animation-delay-400">
-            <Link to="#" className=" bg-white text-gray-800 flex justify-center items-center px-6 py-3 rounded-lg font-semibold">
+            <Link to="/login" className=" bg-white text-gray-800 flex justify-center items-center px-6 py-3 rounded-lg font-semibold">
               Get Started
             </Link>
             <Link to="#" className="flex justify-center items-center px-6 py-3 rounded-lg font-semibold">
