@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
 
 const useRtc = () => {
   const peerConnection = useRef<RTCPeerConnection | null>(null);
@@ -12,17 +11,12 @@ const useRtc = () => {
 
   const getUserMedia = useCallback(async () => {
     try {
+      console.log("Accessing media devices with constraints:", constraints);
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       setLocalStream(stream);
-
-      if (peerConnection.current) {
-        stream.getTracks().forEach((track) => {
-          peerConnection.current?.addTrack(track, stream);
-        });
-      }
     } catch (error) {
-      console.error("Failed to get user media:", error);
-      toast.error("Failed to get user media");
+      console.error("Error accessing media devices:", error);
+      alert("Could not access your camera and microphone. Please check permissions.");
     }
   }, [constraints]);
 

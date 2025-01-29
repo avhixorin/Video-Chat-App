@@ -17,6 +17,7 @@ import useRtc from "../../hooks/useRtc";
 export default function Room() {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isCallActive, setIsCallActive] = useState(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -35,11 +36,11 @@ export default function Room() {
     if (localStream) {
       localStream.getAudioTracks().forEach((track) => {
         track.enabled = !track.enabled;
+        setIsMicOn(track.enabled);
       });
-      setIsMicOn((prev) => !prev);
     }
   };
-
+  
   const toggleVideo = () => {
     if (localStream) {
       localStream.getVideoTracks().forEach((track) => {
@@ -48,6 +49,7 @@ export default function Room() {
       setIsVideoOn((prev) => !prev);
     }
   };
+  
 
   const toggleChat = () => setIsChatOpen((prev) => !prev);
 
@@ -95,7 +97,7 @@ export default function Room() {
 
         {/* Main Video Area */}
         <div className="absolute inset-0 bg-gradient-to-tr from-gray-900 to-gray-800">
-          {isVideoOn ? (
+          {isCallActive ? (
             <img
               src="/placeholder.svg?height=1080&width=1920"
               alt="Video stream"
@@ -189,12 +191,16 @@ export default function Room() {
           <button
             onClick={toggleVideo}
             className={`p-3 rounded-full transition-colors  cursor-pointer ${
-              isVideoOn
+              isMicOn
                 ? "bg-gray-700 hover:bg-gray-600"
                 : "bg-red-600 hover:bg-red-500"
             }`}
           >
-            {isVideoOn ? <Video size={24} /> : <VideoOff size={24} />}
+            {isVideoOn ? (
+              <Video className="w-6 h-6" />
+            ) : (
+              <VideoOff className="w-6 h-6" />
+            )}
           </button>
           <button
             onClick={endCall}
