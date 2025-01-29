@@ -13,17 +13,27 @@ import {
 import useSocket from "../../hooks/useSocket";
 import toast from "react-hot-toast";
 import useRtc from "../../hooks/useRtc";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
+import { updateChat } from "../../redux/chatSlice";
 
 export default function Room() {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(false);
+  const [friendUsername, setFriendUsername] = useState("");
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [message, setMessage] = useState("");
   const { localStream, remoteStream } = useRtc();
   const { socket } = useSocket();
+  const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user);
+  const rooms = useSelector((state: RootState) => state.rooms.participants);
+  const chatHistory =
+    useSelector((state: RootState) => state.chats.chatHistory) || {};
+
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
@@ -32,6 +42,7 @@ export default function Room() {
       remoteVideoRef.current.srcObject = remoteStream;
     }
   }, [localStream, remoteStream]);
+
   const toggleMic = () => {
     if (localStream) {
       localStream.getAudioTracks().forEach((track) => {
@@ -61,7 +72,15 @@ export default function Room() {
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
-    console.log("Message sent:", message);
+    dispatch(
+      updateChat({
+        friendUsername,
+        from: user.username,
+        message,
+        timestamp: new Date().toISOString(),
+      })
+    );
+    socket?.emit("message", { to: friendUsername, message });
     setMessage("");
   };
 
@@ -70,16 +89,20 @@ export default function Room() {
       toast.error("Failed to connect to server");
       return;
     }
+    socket.on("user-joined",(data) => {
+      toast.success(`${data.username} joined the call`);
 
+    })
     return () => {
-      socket.disconnect();
+      if (socket.connected) {
+        socket.disconnect();
+      }
     };
   }, [socket]);
 
   return (
     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 text-white p-4">
       <div className="relative w-full h-full bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
-        {/* Local Stream */}
         <div className="absolute z-50 w-64 h-64 bg-gray-900 bg-opacity-75 top-2 left-2 rounded-2xl flex items-center justify-center">
           {localStream ? (
             <video
@@ -94,7 +117,6 @@ export default function Room() {
           )}
         </div>
 
-        {/* Main Video Area */}
         <div className="absolute inset-0 bg-gradient-to-tr from-gray-900 to-gray-800">
           {isCallActive ? (
             <img
@@ -109,29 +131,23 @@ export default function Room() {
           )}
         </div>
 
-        {/* Participant Thumbnails */}
-        <div className="absolute top-4 right-4 flex space-x-2">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="w-24 h-16 bg-gray-700 rounded-lg overflow-hidden shadow-md"
-            >
+        <div className="absolute top-2 right-2 flex space-x-2">
+          {rooms.map((user, i) => (
+            <div key={i} className="bg-gray-700 rounded-lg overflow-hidden">
               <img
-                src={`/placeholder.svg?height=90&width=160&text=User ${i}`}
-                alt={`User ${i}`}
-                className="w-full h-full object-cover"
+                src={user.userProfile}
+                alt={user.username}
+                className="w-15 h-15 rounded-full object-cover"
               />
             </div>
           ))}
         </div>
 
-        {/* Participant Count */}
         <div className="absolute top-4 left-4 bg-gray-900 bg-opacity-75 px-3 py-1 rounded-full flex items-center space-x-2">
           <Users size={16} />
           <span className="text-sm font-medium">4</span>
         </div>
 
-        {/* Chat Overlay */}
         {isChatOpen && (
           <div className="absolute max-h-96 bottom-4 right-4 w-80 bg-gray-800 bg-opacity-90 rounded-lg overflow-hidden flex flex-col shadow-xl border border-gray-700">
             <div className="p-3 bg-gray-900 flex justify-between items-center">
@@ -144,18 +160,22 @@ export default function Room() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              <div className="bg-blue-600 bg-opacity-50 p-3 rounded-lg rounded-br-none self-end max-w-[80%]">
-                <p className="text-sm">Hello, how are you?</p>
-                <span className="text-xs text-gray-300 mt-1 block">
-                  You - 2:30 PM
-                </span>
-              </div>
-              <div className="bg-gray-700 bg-opacity-50 p-3 rounded-lg rounded-bl-none self-start max-w-[80%]">
-                <p className="text-sm">I'm doing great, thanks for asking!</p>
-                <span className="text-xs text-gray-300 mt-1 block">
-                  John - 2:31 PM
-                </span>
-              </div>
+              {chatHistory.get(friendUsername)?.map((chat, i) => (
+                <div
+                  key={i}
+                  className={`p-3 rounded-lg max-w-[80%] ${
+                    chat.from === user.username
+                      ? "bg-blue-600 bg-opacity-50 self-end rounded-br-none"
+                      : "bg-gray-700 bg-opacity-50 self-start rounded-bl-none"
+                  }`}
+                >
+                  <p className="text-sm">{chat.message}</p>
+                  <span className="text-xs text-gray-300 mt-1 block">
+                    {chat.from} -{" "}
+                    {new Date(chat.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+              ))}
             </div>
             <form onSubmit={sendMessage} className="p-3 bg-gray-900 flex">
               <input
@@ -175,7 +195,6 @@ export default function Room() {
           </div>
         )}
 
-        {/* Control Buttons */}
         <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center space-x-4">
           <button
             onClick={toggleMic}
@@ -190,7 +209,7 @@ export default function Room() {
           <button
             onClick={toggleVideo}
             className={`p-3 rounded-full transition-colors  cursor-pointer ${
-              isMicOn
+              isVideoOn
                 ? "bg-gray-700 hover:bg-gray-600"
                 : "bg-red-600 hover:bg-red-500"
             }`}

@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface User {
     username: string;
     userProfile: string;
+    chatHistory?: Map<string, string[]>; // Map<roomId, chatHistory>
 }
 
 const initialState: User = {

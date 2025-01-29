@@ -14,6 +14,7 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState("");
   const [roomId, setRoomId] = useState("");
+  const [roomName, setRoomName] = useState("");
   const [userProfile, setUserProfile] = useState("");
   const [selectedProfile, setSelectedProfile] = useState("");
 
@@ -23,8 +24,8 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(updateUser({ username, userProfile }));
-    dispatch(updateRoom({ roomId, participants: [] }));
-    socket?.emit("love", { username, roomId, userProfile });
+    dispatch(updateRoom({ roomId, roomName, participants: [{ username, userProfile }] }));
+    socket?.emit("join-room", { username, roomId, roomName, userProfile });
     navigate(`/room/${roomId}`);
   };
 
@@ -72,6 +73,21 @@ export default function LoginPage() {
               onChange={(e) => setRoomId(e.target.value)}
               className="form-input"
               placeholder="Enter room code"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="roomName" className="form-label">
+              Room Name
+            </label>
+            <input
+              type="text"
+              id="roomName"
+              value={roomName}
+              onChange={(e) => setRoomName(e.target.value)}
+              className="form-input"
+              placeholder="Enter room name"
               required
             />
           </div>

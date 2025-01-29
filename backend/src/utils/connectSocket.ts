@@ -11,8 +11,11 @@ const connectSocket = (app: Express) => {
 
   io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
-    socket.on("love", (data) => {
-      console.log(data);
+    socket.on("join-room", (data) => {
+      console.log("Joining room:", data);
+    });
+    socket.on("message", (data) => {
+      console.log("New message:", data);
     });
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);

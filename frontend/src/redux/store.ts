@@ -1,5 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import userSlice from './userSlice';
+import roomSlice from './roomSlice';
+import chatSlice from './chatSlice';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { combineReducers } from 'redux';
@@ -11,6 +13,8 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   user: persistReducer(persistConfig, userSlice),
+  rooms: persistReducer(persistConfig, roomSlice),
+  chats: persistReducer(persistConfig, chatSlice),
 });
 
 export const store = configureStore({

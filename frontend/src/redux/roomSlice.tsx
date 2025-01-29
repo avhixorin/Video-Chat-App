@@ -3,11 +3,13 @@ import { User } from './userSlice';
 
 interface Room {
     roomId: string;
+    roomName: string;
     participants: User[];
 }
 
 const initialState: Room = {
     roomId: "",
+    roomName: "",
     participants: [],
 };
 
@@ -17,6 +19,7 @@ const roomSlice = createSlice({
     reducers: {
         updateRoom(state: Room, action: PayloadAction<Room>) {
             state.roomId = action.payload.roomId;
+            state.roomName = action.payload.roomName;
             state.participants = action.payload.participants;
         },
     },

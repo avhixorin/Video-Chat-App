@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useDispatch } from "react-redux";
 import { io, Socket } from "socket.io-client";
+import { updateChat } from "../redux/chatSlice";
+import toast from "react-hot-toast";
 
 let sharedSocket: Socket | null = null;
 
@@ -19,13 +22,34 @@ const initializeSocket = (): Socket => {
 
 const useSocket = () => {
   const socketRef = useRef<Socket | null>(null);
+  const dispatch = useDispatch();
 
-  const setupSocketListeners = useCallback((socket: Socket) => {
-    socket.on("connect", () => {
-      console.log("Connected to the server");
-    });
+  const handleMessage = useCallback((data: { from: string; message: string }) => {
+    dispatch(
+      updateChat({
+        friendUsername: data.from,
+        from: data.from,
+        message: data.message,
+        timestamp: new Date().toISOString(),
+      })
+    );
+    toast.success(`New message from ${data.from}`);
+  }, [dispatch]);
+  
+  const setupSocketListeners = useCallback(
+    (socket: Socket) => {
+      socket.on("connect", () => {
+        console.log("Connected to the server");
+      });
 
-  }, []);
+      socket.on("message", handleMessage);
+
+      socket.on("disconnect", () => {
+        console.log("Disconnected from the server");
+      });
+    },
+    [handleMessage]
+  );
 
   useEffect(() => {
     socketRef.current = initializeSocket();
