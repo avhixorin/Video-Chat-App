@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { updateUser } from "../../redux/userSlice";
 import { updateRoom } from "../../redux/roomSlice";
+import useSocket from "../../hooks/useSocket";
 
 export default function LoginPage() {
   const profileOptions = [
@@ -18,11 +19,12 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const { socket } = useSocket();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(updateUser({ username, userProfile }));
     dispatch(updateRoom({ roomId, participants: [] }));
+    socket?.emit("love", { username, roomId, userProfile });
     navigate(`/room/${roomId}`);
   };
 
@@ -36,7 +38,9 @@ export default function LoginPage() {
       <div className="login-card">
         <div className="login-header">
           <h1 className="login-title">Video Chat</h1>
-          <p className="login-subtitle">Secure & High Quality Video Conferencing</p>
+          <p className="login-subtitle">
+            Secure & High Quality Video Conferencing
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">

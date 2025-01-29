@@ -23,7 +23,7 @@ export default function Room() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [message, setMessage] = useState("");
   const { localStream, remoteStream } = useRtc();
-  const socket = useSocket();
+  const { socket } = useSocket();
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
@@ -40,7 +40,7 @@ export default function Room() {
       });
     }
   };
-  
+
   const toggleVideo = () => {
     if (localStream) {
       localStream.getVideoTracks().forEach((track) => {
@@ -49,7 +49,6 @@ export default function Room() {
       setIsVideoOn((prev) => !prev);
     }
   };
-  
 
   const toggleChat = () => setIsChatOpen((prev) => !prev);
 

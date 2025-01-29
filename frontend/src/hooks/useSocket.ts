@@ -1,29 +1,48 @@
-import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useCallback, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-import { RootState } from "../redux/store";
+
+let sharedSocket: Socket | null = null;
+
+const SOCKET_URL = "http://localhost:3000";
+
+const initializeSocket = (): Socket => {
+  if (!sharedSocket) {
+    sharedSocket = io(SOCKET_URL, {
+      autoConnect: false,
+      reconnectionAttempts: 5,
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+  }
+  return sharedSocket;
+};
 
 const useSocket = () => {
-  const socket = useRef<Socket | null>(null);
-  const user = useSelector((state: RootState) => state.user);
-  const serverUrl = "http://localhost:3000";
-  useEffect(() => {
-    if (!socket.current) {
-      socket.current = io(serverUrl);
-    }
-    socket.current.on("connect", () => {
-      socket.current?.emit("love", {
-        message: "Hello from client",
-        user: user,
-      });
-    });
-    return () => {
-      socket.current?.disconnect();
-      socket.current = null;
-    };
-  }, [user]);
+  const socketRef = useRef<Socket | null>(null);
 
-  return socket.current;
+  const setupSocketListeners = useCallback((socket: Socket) => {
+    socket.on("connect", () => {
+      console.log("Connected to the server");
+    });
+
+  }, []);
+
+  useEffect(() => {
+    socketRef.current = initializeSocket();
+
+    if (!socketRef.current.connected) {
+      socketRef.current.connect();
+      setupSocketListeners(socketRef.current);
+    }
+
+    return () => {
+      if (!sharedSocket?.connected) {
+        sharedSocket?.off();
+      }
+    };
+  }, [setupSocketListeners]);
+
+  return { socket: socketRef.current };
 };
 
 export default useSocket;

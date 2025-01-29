@@ -12,7 +12,8 @@ import {
 import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import Room from "./components/Room/Room.tsx";
 import LoginPage from "./components/Login/Login.tsx";
-import { store } from "./redux/store.ts";
+import { persistor, store } from "./redux/store.ts";
+import { PersistGate } from "redux-persist/integration/react";
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
@@ -25,7 +26,9 @@ const router = createBrowserRouter(
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
       <RouterProvider router={router} />
+    </PersistGate>
     </Provider>
   </StrictMode>
 );
