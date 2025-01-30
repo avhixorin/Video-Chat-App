@@ -1,6 +1,7 @@
 import http from "http";
 import { Server } from "socket.io";
 import { Express } from "express";
+import roomHandler from "./roomHandler";
 const connectSocket = (app: Express) => {
   const server = http.createServer(app);
   const io = new Server(server, {
@@ -12,7 +13,13 @@ const connectSocket = (app: Express) => {
   io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
     socket.on("join-room", (data) => {
-      console.log("Joining room:", data);
+      roomHandler.joinRoom({ roomId: data.roomId, user: data.user }, socket);
+      const usersInRoom = roomHandler.getUsersInRoom(data.roomId);
+      if (usersInRoom && usersInRoom.length > 0) {
+        console.log("The first user in the room is: ", usersInRoom[0]);
+      } else {
+        console.log("No users in the room.");
+      }
     });
     socket.on("message", (data) => {
       console.log("New message:", data);
