@@ -12,14 +12,9 @@ const connectSocket = (app: Express) => {
 
   io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
+
     socket.on("join-room", (data) => {
       roomHandler.joinRoom({ roomId: data.roomId, user: data.user }, socket);
-      const usersInRoom = roomHandler.getUsersInRoom(data.roomId);
-      if (usersInRoom && usersInRoom.length > 0) {
-        console.log("The first user in the room is: ", usersInRoom[0]);
-      } else {
-        console.log("No users in the room.");
-      }
     });
     socket.on("message", (data) => {
       console.log("New message:", data);

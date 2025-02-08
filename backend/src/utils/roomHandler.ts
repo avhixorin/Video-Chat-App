@@ -24,10 +24,11 @@ class RoomHandler {
   }
 
   public joinRoom(data: { roomId: string; user: User }, socket: Socket) {
+    console.log("Joining room:", data.roomId);
     let room = this.rooms.get(data.roomId);
 
     if (!room) {
-      room = { name: data.roomId, users: [], messages: [] };
+      room = { name: data.roomId, users: [] };
       this.rooms.set(data.roomId, room);
     }
 

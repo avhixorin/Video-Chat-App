@@ -25,7 +25,8 @@ export default function LoginPage() {
     e.preventDefault();
     dispatch(updateUser({ username, userProfile }));
     dispatch(updateRoom({ roomId, roomName, participants: [{ username, userProfile }] }));
-    socket?.emit("join-room", { username, roomId, roomName, userProfile });
+    const user = { username, userProfile };
+    socket?.emit("join-room", { roomId, roomName, user });
     navigate(`/room/${roomId}`);
   };
 
