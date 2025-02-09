@@ -2,6 +2,7 @@ import http from "http";
 import { Server } from "socket.io";
 import { Express } from "express";
 import roomHandler from "./roomHandler";
+let users: { [key: string]: string } = {};
 const connectSocket = (app: Express) => {
   const server = http.createServer(app);
   const io = new Server(server, {
@@ -12,16 +13,23 @@ const connectSocket = (app: Express) => {
 
   io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
-
+    
     socket.on("join-room", (data) => {
-      roomHandler.joinRoom({ roomId: data.roomId, user: data.user }, socket);
+      users[socket.id] = data.user.username;
+      console.log("user is", users[socket.id]);
+      roomHandler.joinRoom({ roomId: data.roomId, user: data.user }, socket, io);
     });
+    
     socket.on("message", (data) => {
+      roomHandler.sendMessage({ roomId: data.roomId, from: users[socket.id], message: data.message }, socket);
       console.log("New message:", data);
-    });
+    });    
+
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
+      delete users[socket.id];
     });
+    
   });
 
   server.listen(3000, () => {

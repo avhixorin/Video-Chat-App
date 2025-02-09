@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Chats {
     from: string;
@@ -6,22 +6,28 @@ interface Chats {
     timestamp: string;
 }
 
-interface ChatHistory {
-    chatHistory: Map<string, Chats[]>; 
+interface ChatHistoryState {
+    chatHistory: Chats[];
 }
 
-const initialState: ChatHistory = {
-    chatHistory: new Map(),
+const initialState: ChatHistoryState = {
+    chatHistory: [],
 };
 
 const chatSlice = createSlice({
     name: "chat",
     initialState,
     reducers: {
-        updateChat(state: ChatHistory, action) {
-            const { friendUsername, from, message, timestamp } = action.payload;
-            const chats = state.chatHistory.get(friendUsername) || [];
-            state.chatHistory.set(friendUsername, [...chats, { from, message, timestamp }]);
+        updateChat(state, action: PayloadAction<Chats>) {
+            if (!Array.isArray(state.chatHistory)) {
+                state.chatHistory = [];
+            }
+
+            state.chatHistory = [...state.chatHistory, action.payload]; 
+
+            if (state.chatHistory.length > 50) {
+                state.chatHistory = state.chatHistory.slice(1);
+            }
         },
     },
 });

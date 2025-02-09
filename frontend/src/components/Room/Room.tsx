@@ -21,7 +21,6 @@ export default function Room() {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isCallActive, setIsCallActive] = useState(false);
-  const [friendUsername, setFriendUsername] = useState("");
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -30,9 +29,11 @@ export default function Room() {
   const { socket } = useSocket();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
-  const rooms = useSelector((state: RootState) => state.rooms.participants);
-  const chatHistory =
-    useSelector((state: RootState) => state.chats.chatHistory) || {};
+  const roomId = useSelector((state: RootState) => state.rooms.roomId);
+  const allUsers = useSelector((state: RootState) => state.rooms.participants);
+  const chatHistory = useSelector(
+    (state: RootState) => state.chats.chatHistory
+  );
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -68,19 +69,17 @@ export default function Room() {
     toast.success("Call ended");
     socket?.disconnect();
   };
-
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
     dispatch(
       updateChat({
-        friendUsername,
         from: user.username,
         message,
         timestamp: new Date().toISOString(),
       })
     );
-    socket?.emit("message", { to: friendUsername, message });
+    socket?.emit("message", { message, roomId });
     setMessage("");
   };
 
@@ -89,13 +88,13 @@ export default function Room() {
       toast.error("Failed to connect to server");
       return;
     }
-    socket.on("user-joined",(data) => {
+    socket.on("user-joined", (data) => {
       toast.success(`${data.username} joined the call`);
-
-    })
+    });
     return () => {
       if (socket.connected) {
         socket.disconnect();
+        socket.off("user-joined");
       }
     };
   }, [socket]);
@@ -132,7 +131,7 @@ export default function Room() {
         </div>
 
         <div className="absolute top-2 right-2 flex space-x-2">
-          {rooms.map((user, i) => (
+          {allUsers.map((user, i) => (
             <div key={i} className="bg-gray-700 rounded-lg overflow-hidden">
               <img
                 src={user.userProfile}
@@ -160,23 +159,25 @@ export default function Room() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {chatHistory.get(friendUsername)?.map((chat, i) => (
-                <div
-                  key={i}
-                  className={`p-3 rounded-lg max-w-[80%] ${
-                    chat.from === user.username
-                      ? "bg-blue-600 bg-opacity-50 self-end rounded-br-none"
-                      : "bg-gray-700 bg-opacity-50 self-start rounded-bl-none"
-                  }`}
-                >
-                  <p className="text-sm">{chat.message}</p>
-                  <span className="text-xs text-gray-300 mt-1 block">
-                    {chat.from} -{" "}
-                    {new Date(chat.timestamp).toLocaleTimeString()}
-                  </span>
-                </div>
-              ))}
+              {Array.isArray(chatHistory) &&
+                chatHistory.map((chat, i) => (
+                  <div
+                    key={i}
+                    className={`p-3 rounded-lg max-w-[80%] ${
+                      chat.from === user.username
+                        ? "bg-blue-600 bg-opacity-50 self-end rounded-br-none"
+                        : "bg-gray-700 bg-opacity-50 self-start rounded-bl-none"
+                    }`}
+                  >
+                    <p className="text-sm">{chat.message}</p>
+                    <span className="text-xs text-gray-300 mt-1 block">
+                      {chat.from} -{" "}
+                      {new Date(chat.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                ))}
             </div>
+
             <form onSubmit={sendMessage} className="p-3 bg-gray-900 flex">
               <input
                 type="text"
