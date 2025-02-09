@@ -163,17 +163,19 @@ export default function Room() {
                 chatHistory.map((chat, i) => (
                   <div
                     key={i}
-                    className={`p-3 rounded-lg max-w-[80%] ${
+                    className={`w-full flex flex-col`}
+                  >
+                    <div className={`p-3 rounded-lg max-w-[80%] flex flex-col ${
                       chat.from === user.username
                         ? "bg-blue-600 bg-opacity-50 self-end rounded-br-none"
                         : "bg-gray-700 bg-opacity-50 self-start rounded-bl-none"
-                    }`}
-                  >
+                    }`}>
                     <p className="text-sm">{chat.message}</p>
                     <span className="text-xs text-gray-300 mt-1 block">
                       {chat.from} -{" "}
                       {new Date(chat.timestamp).toLocaleTimeString()}
                     </span>
+                    </div>
                   </div>
                 ))}
             </div>

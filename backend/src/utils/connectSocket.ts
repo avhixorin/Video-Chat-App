@@ -16,13 +16,11 @@ const connectSocket = (app: Express) => {
     
     socket.on("join-room", (data) => {
       users[socket.id] = data.user.username;
-      console.log("user is", users[socket.id]);
       roomHandler.joinRoom({ roomId: data.roomId, user: data.user }, socket, io);
     });
     
     socket.on("message", (data) => {
       roomHandler.sendMessage({ roomId: data.roomId, from: users[socket.id], message: data.message }, socket);
-      console.log("New message:", data);
     });    
 
     socket.on("disconnect", () => {

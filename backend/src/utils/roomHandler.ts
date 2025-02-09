@@ -24,7 +24,6 @@ class RoomHandler {
   }
 
   public joinRoom(data: { roomId: string; user: User }, socket: Socket, io: Server) {
-    console.log("Joining room:", data.roomId);
     let room = this.rooms.get(data.roomId);
 
     if (!room) {
@@ -39,12 +38,10 @@ class RoomHandler {
     socket.join(data.roomId);
     socket.to(data.roomId).emit("new-user", data.user);
     const users = this.getUsersInRoom(data.roomId);
-    io.in(data.roomId).emit("users", users);// emit this event to all the users in the room
-    console.log(`${data.user.username} joined room ${data.roomId}`);
+    io.in(data.roomId).emit("users", users);
   }
 
   public sendMessage(data: { roomId: string; from: string; message: string }, socket: Socket) {
-    console.log("Sending message:", data);
     socket.to(data.roomId).emit("message", data);
   }
 
@@ -55,8 +52,6 @@ class RoomHandler {
     room.users = room.users.filter((user) => user.username !== data.username);
     socket.leave(data.roomId);
     socket.to(data.roomId).emit("user-left", data.username);
-
-    console.log(`${data.username} left room ${data.roomId}`);
 
     if (room.users.length === 0) {
       this.rooms.delete(data.roomId);
